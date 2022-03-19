@@ -26,6 +26,7 @@ void debug();
 void debugmsg(char* msg);
 
 int x = 0;
+int charCount = 0;
 int y = 1;
 int dx = 0;
 int dy = 16;
@@ -33,4 +34,5 @@ int c;
 int pos = -1;
 int bufferLength = 0;
 char buffer[10000];
+int lines[1000];
 FILE *fp;

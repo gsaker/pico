@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
             }
             if (chNum == 's')
             {
+                
                 debugmsg("Saving");
                 FILE *file = fopen(argv[1], "w");
                 int results = fputs(buffer, file);
@@ -70,21 +71,26 @@ int main(int argc, char *argv[])
 }
 void readChar(char c)
 {
+    charCount += 1;
     pos += 1;
     buffer[pos] = c;
     printw("%c", c);
-    
+
     bufferLength += 1;
     char ch = c;
     if (ch == '\n')
     {
+        lines[y - 1] = charCount;
         y += 1;
         x = 0;
-        //printw(" XYPC:%d%d%d%c ",x,y,pos,buffer[pos]);
+        // printw("%d",lines[0]);
+        charCount = 0;
+
+        // printw(" XYPC:%d%d%d%c ",x,y,pos,buffer[pos]);
     }
     else
     {
-        //printw(" XPC:%d%d%c ",x,pos,buffer[pos]);
+        // printw(" XPC:%d%d%c ",x,pos,buffer[pos]);
         x += 1;
     }
 }
@@ -101,6 +107,8 @@ void enterEntered()
 {
     printw("H");
     insertChar(pos, '\n');
+    lines[y-1] = lines[y];
+    lines[y-1] = 1;
     bufferLength += 1;
     pos += 1;
     y += 1;
@@ -111,38 +119,52 @@ void enterEntered()
 }
 void backspaceEntered()
 {
-    x -=1;
-    if (x<=-1)
+    x -= 1;
+    if (x <= -1)
     {
-        x = 0;
-        refresh();
-
+        if (lines[y-1] == 1){
+            int index = pos - 1;
+            int i;
+            for (i = index; i < bufferLength - 1; i++)
+            {
+                buffer[i] = buffer[i + 1];
+            }
+            moveToLineAbove();
+        }
     }
-    int index = pos-1;
-    int i;
-    for (i = index; i < bufferLength - 1; i++)
+    
+    else
     {
-        buffer[i] = buffer[i + 1];
-    }
+        int index = pos - 1;
+        int i;
+        for (i = index; i < bufferLength - 1; i++)
+        {
+            buffer[i] = buffer[i + 1];
+        }
+        lines[y-1] -= 1;
         pos -= 1;
-    move(y, x);
-    refreshBuffer();
+        move(y, x);
+        bufferLength -=1;
     }
+    
+    refreshBuffer();
+}
 void upArrowEntered()
 {
-    move(y - 1, 0);
-    x = 0;
-    y -= 1;
+    if (y != 1){
     refresh();
     moveToLineAbove();
+    }
 }
 void downArrowEntered()
 {
+    if (lines[y] != 0){
     move(y + 1, 0);
     x = 0;
     y += 1;
     refresh();
     moveToLineBelow();
+}
 }
 void leftArrowEntered()
 {
@@ -151,48 +173,61 @@ void leftArrowEntered()
         refresh();
     }
     else
-    {  
-    pos -= 1;
-    move(y, x - 1);
-    x -= 1;
-    // }
-    refresh();
+    {
+        pos -= 1;
+        move(y, x - 1);
+        x -= 1;
+        // }
+        refresh();
     }
 }
 void rightArrowEntered()
 {
     if (buffer[pos] == '\n')
     {
+        if (lines[y] != 0){
         pos += 1;
-        move(y+1,0);
-        x=0;
-        y+=1;
+        move(y + 1, 0);
+        x = 0;
+        y += 1;
         refresh();
+        }
     }
-    else{
-    pos += 1;
-    move(y, x + 1);
-    x += 1;
-    //}
-    // refreshBuffer();
-    refresh();
+    else
+    {
+        pos += 1;
+        move(y, x + 1);
+        x += 1;
+        refresh();
     }
 }
 void debug()
 {
     move(15, 0);
-    printw("XY:%d%d", x, y);
-    printw("P:%d:%c", pos,buffer[pos]);
+    if (buffer[pos] == '\n')
+    {
+        printw("XY:%d%d", x, y);
+        printw("P:%d:\\n", pos);
+        printw("L:%d",bufferLength);
+    }
+    else
+    {
+        printw("XY:%d%d", x, y);
+        printw("P:%d:%c", pos, buffer[pos]);
+        printw(" L:%d",bufferLength);
+    }
     move(y, x);
 }
-void debugmsg(char* msg){
-    move(dy,dx);
+void debugmsg(char *msg)
+{
+    move(dy, dx);
     printw(msg);
     dx += strlen(msg);
-    move(y,x);
+    move(y, x);
 }
 void refreshBuffer()
 {
+
     move(1, 0);
     clrtobot();
     printw("%s", buffer);
@@ -207,37 +242,80 @@ void insertChar(int insertPos, char character)
         buffer[count + 1] = buffer[count];
     }
     buffer[insertPos] = character;
+    lines[y - 1] += 1;
 }
 int moveToLineAbove()
 {
     bool foundNewLineUp = false;
     bool normalChar = false;
-
-    if (buffer[pos] == '\n')
+    if (buffer[pos] == '\n' && buffer[pos - 1] == '\n')
+    {
+        bufferLength -=1;
+        debug();
+        pos -= 2;
+        int index = pos + 1;
+        int i;
+        for (i = index; i < bufferLength - 1; i++)
+        {
+            buffer[i] = buffer[i + 1];
+        }
+        while (foundNewLineUp != true)
+        {
+            if (buffer[pos] == '\n')
+            {
+                pos += 1;
+                foundNewLineUp = true;
+            }
+            else if (pos == 0)
+            {
+                foundNewLineUp = true;
+            }
+            else
+            {
+                pos -= 1;
+            }
+        }
+    }
+    if (buffer[pos] == '\n' && x == 0)
     {
         pos -= 1;
         while (foundNewLineUp != true)
+        {
+            if (buffer[pos] == '\n')
             {
-                if (buffer[pos] == '\n')
-                {
-                    pos += 1;
-                    foundNewLineUp = true;
-                    return 0;
-                }
-                else if(pos == 0){
-                    foundNewLineUp = true;
-                    return 0;
-                }
-                else
-                {
-                    pos -= 1;
-                }
+                // printw("%d",pos);
+                pos += 1;
+                foundNewLineUp = true;
+                move(y - 1, 0);
+                x = 0;
+                y -= 1;
+                refresh();
+                return 0;
             }
-    
+            else if (pos == 0)
+            {
+                move(y - 1, 0);
+                x = 0;
+                y -= 1;
+                refresh();
+                foundNewLineUp = true;
+                return 0;
+            }
+            else
+            {
+                pos -= 1;
+            }
+        }
     }
-    
+    else if (buffer[pos] == '\n')
+    {
+        pos -= 1;
+        x -= 1;
+    }
+
     while (foundNewLineUp != true)
     {
+
         if (buffer[pos] == '\n')
         {
             pos -= 1;
@@ -249,7 +327,8 @@ int moveToLineAbove()
                     pos += 1;
                     foundNewLineUp = true;
                 }
-                else if(pos == 0){
+                else if (pos == 0)
+                {
                     foundNewLineUp = true;
                 }
                 else
@@ -263,6 +342,9 @@ int moveToLineAbove()
             pos -= 1;
         }
     }
+    move(y - 1, 0);
+    x = 0;
+    y -= 1;
     refresh();
 }
 void moveToLineBelow()
@@ -270,7 +352,11 @@ void moveToLineBelow()
     bool foundNewLineDown = false;
     while (foundNewLineDown != true)
     {
-        if (buffer[pos] == '\n')
+        if (lines[y-1] == 0)
+        {
+
+        }
+        else if (buffer[pos] == '\n')
         {
             pos += 1;
             foundNewLineDown = true;

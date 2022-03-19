@@ -5,6 +5,7 @@ Known Bugs/Things to implement:
 - Unable to remove newlines
 - Text cursor not moving as it should when moving between lines
 - Can't make new files
+- Often randomly loses positin if you remove characters
 - Many other things...
 
 To Compile:
