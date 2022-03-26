@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
             int chNum = getch();
             if (chNum == 'd')
             {
+                //printw("%d",sizeof(lines));
                 debug();
             }
             if (chNum == 's')
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            // printw("%d",chNum);
+             //printw("%d",chNum);
             characterEntered(chNum);
         }
     }
@@ -105,10 +106,46 @@ void characterEntered(int chNum)
 }
 void enterEntered()
 {
-    printw("H");
     insertChar(pos, '\n');
-    lines[y-1] = lines[y];
-    lines[y-1] = 1;
+    int i;
+    int k = 0;
+    bool running = true;
+    while (running == true){
+        if (lines[k] == 0){
+            debugmsg("Stop");
+            running = false;
+        }
+        else{
+            k++;
+        }
+    }
+    size = k;
+    debugmsg("Done");
+    memset(lines, 0, sizeof(lines)); // for automatically-allocated arrays
+    int tempLines = 0;
+    int currentLine = 0;
+    int charNum = 0;
+    running = true;
+    while (running == true){
+        debugmsg("E");
+        if (charNum == bufferLength){
+            running = false;
+        }
+        if (buffer[charNum] == '\n'){
+            tempLines += 1;
+            lines[currentLine] = tempLines;
+            currentLine += 1;
+            tempLines = 0;
+        }
+        else{
+            tempLines += 1;
+        }
+        charNum++;
+    }
+    for (int charNum = 0;charNum==bufferLength;charNum++){
+
+    }
+    debug();
     bufferLength += 1;
     pos += 1;
     y += 1;
@@ -122,15 +159,16 @@ void backspaceEntered()
     x -= 1;
     if (x <= -1)
     {
-        if (lines[y-1] == 1){
+        x=0;
             int index = pos - 1;
             int i;
             for (i = index; i < bufferLength - 1; i++)
             {
                 buffer[i] = buffer[i + 1];
             }
+            pos += lines[y-1]-1;
+            //pos -=1;
             moveToLineAbove();
-        }
     }
     
     else
@@ -146,7 +184,29 @@ void backspaceEntered()
         move(y, x);
         bufferLength -=1;
     }
-    
+ 
+    int tempLines = 0;
+    int currentLine = 0;
+    int charNum = 0;
+    bool running = true;
+    while (running == true){
+        debugmsg("E");
+        if (charNum == bufferLength){
+            running = false;
+        }
+        if (buffer[charNum] == '\n'){
+            tempLines += 1;
+            lines[currentLine] = tempLines;
+            currentLine += 1;
+            tempLines = 0;
+        }
+        else{
+            tempLines += 1;
+        }
+        charNum++;
+    }
+                debug();
+
     refreshBuffer();
 }
 void upArrowEntered()
@@ -164,6 +224,9 @@ void downArrowEntered()
     y += 1;
     refresh();
     moveToLineBelow();
+}
+else{
+    debugmsg("No");
 }
 }
 void leftArrowEntered()
@@ -209,12 +272,17 @@ void debug()
         printw("XY:%d%d", x, y);
         printw("P:%d:\\n", pos);
         printw("L:%d",bufferLength);
+        printw(" S:%d",size);
+                printw(" A:%d,%d,%d,%d,%d,%d",lines[0],lines[1],lines[2],lines[3],lines[4],lines[5],lines[6]);
+
     }
     else
     {
         printw("XY:%d%d", x, y);
         printw("P:%d:%c", pos, buffer[pos]);
         printw(" L:%d",bufferLength);
+        printw(" S:%d",size);
+        printw(" A:%d,%d,%d,%d,%d,%d",lines[0],lines[1],lines[2],lines[3],lines[4],lines[5],lines[6]);
     }
     move(y, x);
 }

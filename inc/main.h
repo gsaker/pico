@@ -24,6 +24,10 @@ void rightArrowEntered();
 void readChar(char c);
 void debug();
 void debugmsg(char* msg);
+void setupCurses();
+void openFile(char *argv);
+void characterGet(char *argv);
+void saveFile(char *argv);
 
 int x = 0;
 int charCount = 0;
@@ -31,6 +35,7 @@ int y = 1;
 int dx = 0;
 int dy = 16;
 int c;
+int size;
 int pos = -1;
 int bufferLength = 0;
 char buffer[10000];
